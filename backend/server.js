@@ -23,14 +23,25 @@ app.use(async (req, res, next) => {
 const allowedOrigins = [
   process.env.CLIENT_URL,
   'http://localhost:5173',
-  'http://localhost:5174'
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174'
 ].filter(Boolean);
 
 const corsOptions = {
   // Allow common local dev ports plus an optional explicit CLIENT_URL
   origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, or same-origin)
     if (!origin) return callback(null, true);
+    
+    // In development, be more permissive
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    // In production, check against allowedOrigins
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
