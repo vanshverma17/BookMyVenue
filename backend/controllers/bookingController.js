@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Booking = require('../models/Booking');
 const Venue = require('../models/Venue');
 
@@ -47,6 +48,13 @@ exports.getBookings = async (req, res) => {
 // @access  Private
 exports.getBooking = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
     const booking = await Booking.findById(req.params.id)
       .populate('venue', 'name type capacity location')
       .populate('user', 'name email department')
@@ -137,6 +145,13 @@ exports.createBooking = async (req, res) => {
 // @access  Private
 exports.updateBooking = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
     let booking = await Booking.findById(req.params.id);
 
     if (!booking) {
@@ -192,6 +207,13 @@ exports.updateBooking = async (req, res) => {
 // @access  Private/Admin
 exports.updateBookingStatus = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
     const { status, rejectionReason } = req.body;
 
     let booking = await Booking.findById(req.params.id);
@@ -235,6 +257,13 @@ exports.updateBookingStatus = async (req, res) => {
 // @access  Private
 exports.deleteBooking = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
     const booking = await Booking.findById(req.params.id);
 
     if (!booking) {
@@ -265,3 +294,100 @@ exports.deleteBooking = async (req, res) => {
     });
   }
 };
+
+// @desc    Get dashboard statistics and summaries
+// @route   GET /api/bookings/stats
+// @access  Private
+exports.getDashboardStats = async (req, res) => {
+  try {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+
+    const now = new Date();
+    const isAdmin = req.user.role === 'admin';
+    const isStaff = req.user.role === 'staff';
+    const isStudent = req.user.role === 'student';
+
+    // 1. Today's Bookings Count
+    let todayFilter = {
+      startTime: { $lte: endOfToday },
+      endTime: { $gte: startOfToday },
+      status: { $nin: ['cancelled', 'rejected'] }
+    };
+    if (isStudent) {
+      todayFilter.status = 'approved';
+    }
+    const todayBookingsCount = await Booking.countDocuments(todayFilter);
+
+    // 2. Available Venues Count
+    const availableVenuesCount = await Venue.countDocuments({ isActive: true, status: 'Available' });
+    const totalVenuesCount = await Venue.countDocuments({ isActive: true });
+
+    // 3. Pending Approvals Count
+    let pendingFilter = { status: 'pending' };
+    if (!isAdmin) {
+      pendingFilter.user = req.user.id;
+    }
+    const pendingApprovalsCount = await Booking.countDocuments(pendingFilter);
+
+    // 4. Upcoming Schedule
+    let upcomingFilter = {
+      endTime: { $gte: now },
+      status: { $in: ['approved', 'pending'] }
+    };
+    if (!isAdmin && !isStaff) {
+      upcomingFilter.status = 'approved';
+    }
+    const upcomingSchedule = await Booking.find(upcomingFilter)
+      .populate('venue', 'name type capacity location')
+      .populate('user', 'name email department')
+      .sort({ startTime: 1 })
+      .limit(6);
+
+    // 5. Today's Events (Approved bookings occurring today)
+    const todayEvents = await Booking.find({
+      startTime: { $lte: endOfToday },
+      endTime: { $gte: startOfToday },
+      status: 'approved'
+    })
+      .populate('venue', 'name type capacity location')
+      .populate('user', 'name email department')
+      .sort({ startTime: 1 })
+      .limit(10);
+
+    // 6. Recent Bookings
+    let recentFilter = {};
+    if (!isAdmin) {
+      recentFilter.user = req.user.id;
+    }
+    const recentBookings = await Booking.find(recentFilter)
+      .populate('venue', 'name type capacity location')
+      .populate('user', 'name email department')
+      .sort({ createdAt: -1 })
+      .limit(6);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        stats: {
+          todayBookings: todayBookingsCount,
+          availableVenues: availableVenuesCount,
+          totalVenues: totalVenuesCount,
+          pendingApprovals: pendingApprovalsCount
+        },
+        upcomingSchedule,
+        todayEvents,
+        recentBookings
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+

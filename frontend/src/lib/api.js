@@ -65,8 +65,12 @@ export const venuesApi = {
 };
 
 export const bookingsApi = {
+  getStats: () => apiRequest('/api/bookings/stats'),
   myBookings: () => apiRequest('/api/bookings'),
-  list: () => apiRequest('/api/bookings'), // Admin sees all, users see only their own
+  list: (params) => {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return apiRequest(`/api/bookings${query}`);
+  },
   create: (payload) => apiRequest('/api/bookings', { method: 'POST', body: payload }),
   update: (id, payload) => apiRequest(`/api/bookings/${id}`, { method: 'PUT', body: payload }),
   updateStatus: (id, payload) => apiRequest(`/api/bookings/${id}/status`, { method: 'PUT', body: payload }),

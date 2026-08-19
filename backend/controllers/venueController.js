@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Venue = require('../models/Venue');
 
 // @desc    Get all venues
@@ -49,6 +50,13 @@ exports.getVenues = async (req, res) => {
 // @access  Public
 exports.getVenue = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Venue not found'
+      });
+    }
+
     const venue = await Venue.findById(req.params.id)
       .populate('createdBy', 'name email');
 
@@ -97,6 +105,13 @@ exports.createVenue = async (req, res) => {
 // @access  Private/Admin
 exports.updateVenue = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Venue not found'
+      });
+    }
+
     let venue = await Venue.findById(req.params.id);
 
     if (!venue) {
@@ -128,6 +143,13 @@ exports.updateVenue = async (req, res) => {
 // @access  Private/Admin
 exports.deleteVenue = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Venue not found'
+      });
+    }
+
     const venue = await Venue.findById(req.params.id);
 
     if (!venue) {

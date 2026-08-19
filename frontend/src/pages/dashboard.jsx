@@ -1,70 +1,258 @@
-import { Calendar, Building2, Clock, Bell, MapPin } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Calendar, Building2, Clock, Bell, MapPin, AlertCircle, RefreshCw, User, CheckCircle2, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { useAuth } from '../context/AuthContext';
+import { bookingsApi } from '../lib/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const isStudent = user?.role === 'student';
+  const isAdmin = user?.role === 'admin';
 
-  // Sample data
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
+  const [dashboardData, setDashboardData] = useState({
+    stats: {
+      todayBookings: 0,
+      availableVenues: 0,
+      totalVenues: 0,
+      pendingApprovals: 0
+    },
+    upcomingSchedule: [],
+    todayEvents: [],
+    recentBookings: []
+  });
+
+  const fetchDashboardData = async (isManualRefresh = false) => {
+    try {
+      if (isManualRefresh) setRefreshing(true);
+      else setLoading(true);
+      setError('');
+
+      const res = await bookingsApi.getStats();
+      if (res?.success && res?.data) {
+        setDashboardData(res.data);
+      }
+    } catch (err) {
+      console.error('Error loading dashboard stats:', err);
+      setError(err?.message || 'Failed to load dashboard data from server');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
   const stats = [
-    { title: "Today's Bookings", value: 5, color: 'bg-purple-400', icon: Calendar },
-    { title: 'Available Venues', value: 12, color: 'bg-teal-400', icon: Building2 },
-    { title: 'Pending Approvals', value: 3, color: 'bg-orange-400', icon: Clock }
+    {
+      title: "Today's Bookings",
+      value: dashboardData.stats?.todayBookings ?? 0,
+      color: 'bg-gradient-to-r from-purple-500 to-purple-600',
+      icon: Calendar,
+      desc: isStudent ? 'Approved events today' : 'Scheduled sessions for today'
+    },
+    {
+      title: 'Available Venues',
+      value: dashboardData.stats?.availableVenues ?? 0,
+      color: 'bg-gradient-to-r from-teal-500 to-teal-600',
+      icon: Building2,
+      desc: `Out of ${dashboardData.stats?.totalVenues ?? 0} total venues`
+    },
+    {
+      title: isAdmin ? 'Pending Approvals' : 'My Pending Requests',
+      value: dashboardData.stats?.pendingApprovals ?? 0,
+      color: 'bg-gradient-to-r from-orange-500 to-amber-600',
+      icon: Clock,
+      desc: isAdmin ? 'Awaiting your review' : 'Under admin review'
+    }
   ];
 
-  const upcomingSchedule = [
-    { id: 1, title: 'Biology Periview', type: 'Room • 203', location: 'F001M 2023', time: '10:00 AM - 1:00 AM', status: 'This to Review', statusColor: 'text-orange-500' },
-    { id: 2, title: 'Glense Acomper', type: 'Guest Lecture', location: 'Auditorium', time: '3:00 PM - 5:00 PM', statusColor: 'text-green-500' },
-    { id: 3, title: 'Math= Arrhest..', type: 'Math Workshop', location: 'Seminar Hall', time: '9:00 AM - 1:00 AM', statusColor: 'text-green-500' }
-  ];
-
-  const recentBookings = [
-    { venue: 'Room 305', date: 'Apr 22, 2024', status: 'Approved', statusColor: 'text-green-500' },
-    { venue: 'Seminar Hall', date: 'Apr 21, 2024', status: 'Pending', statusColor: 'text-yellow-500' },
-    { venue: 'Auditorium', date: 'Apr 20, 2024', status: 'Pending', statusColor: 'text-blue-400' },
-    { venue: 'Library', date: 'Apr 19, 2024', status: 'Approved', statusColor: 'text-green-500' }
-  ];
-
-  // Student-specific data
   const notices = [
-    { id: 1, title: 'Exam Schedule Released', message: 'Mid-term examination schedule has been posted. Check your portal for details.', time: '2 hours ago', priority: 'high' },
-    { id: 2, title: 'Library Hours Extended', message: 'Library will remain open until 10 PM during exam week.', time: '5 hours ago', priority: 'medium' },
-    { id: 3, title: 'Sports Day Registration', message: 'Register for annual sports day events before April 25th.', time: '1 day ago', priority: 'low' }
+    {
+      id: 1,
+      title: 'Exam Schedule & Venue Allocation',
+      message: 'Mid-term examination hall allocations have been updated in the portal.',
+      time: 'Today',
+      priority: 'high'
+    },
+    {
+      id: 2,
+      title: 'Library Extended Hours',
+      message: 'Central Library study halls remain open until 10:00 PM on weekdays.',
+      time: 'Yesterday',
+      priority: 'medium'
+    },
+    {
+      id: 3,
+      title: 'Campus Seminar & Workshops',
+      message: 'Check upcoming guest lectures and lab workshops scheduled this week.',
+      time: '2 days ago',
+      priority: 'low'
+    }
   ];
 
-  const todayEvents = [
-    { id: 1, title: 'Guest Lecture: AI & Machine Learning', venue: 'Auditorium', time: '10:00 AM - 12:00 PM', organizer: 'Computer Science Dept', status: 'Ongoing' },
-    { id: 2, title: 'Workshop: Web Development', venue: 'Lab 203', time: '2:00 PM - 5:00 PM', organizer: 'Tech Club', status: 'Upcoming' },
-    { id: 3, title: 'Cultural Committee Meeting', venue: 'Seminar Hall', time: '4:00 PM - 5:30 PM', organizer: 'Cultural Committee', status: 'Upcoming' }
-  ];
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return 'N/A';
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
 
-  // removed student-only `myBookings` (not used in UI)
+  const formatTimeRange = (startStr, endStr) => {
+    if (!startStr) return 'N/A';
+    const start = new Date(startStr);
+    const end = endStr ? new Date(endStr) : null;
+    if (isNaN(start.getTime())) return 'N/A';
+
+    const startFormatted = start.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+
+    if (!end || isNaN(end.getTime())) return startFormatted;
+
+    const endFormatted = end.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+
+    return `${startFormatted} - ${endFormatted}`;
+  };
+
+  const getEventStatus = (startStr, endStr) => {
+    const now = new Date();
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+
+    if (now >= start && now <= end) {
+      return { label: 'Ongoing', style: 'bg-green-100 text-green-700 font-semibold' };
+    } else if (now < start) {
+      return { label: 'Upcoming', style: 'bg-blue-100 text-blue-700 font-semibold' };
+    } else {
+      return { label: 'Completed', style: 'bg-gray-100 text-gray-600 font-semibold' };
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'approved':
+        return { text: 'Approved', style: 'text-green-600 bg-green-50 border border-green-200' };
+      case 'pending':
+        return { text: 'Pending', style: 'text-amber-600 bg-amber-50 border border-amber-200' };
+      case 'rejected':
+        return { text: 'Rejected', style: 'text-red-600 bg-red-50 border border-red-200' };
+      case 'cancelled':
+        return { text: 'Cancelled', style: 'text-gray-600 bg-gray-50 border border-gray-200' };
+      default:
+        return { text: status || 'Unknown', style: 'text-purple-600 bg-purple-50 border border-purple-200' };
+    }
+  };
+
+  const currentMonthYear = new Date().toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric'
+  });
 
   return (
     <div className="flex h-screen w-full bg-gradient-to-br from-purple-50 to-blue-50 overflow-hidden">
       <Sidebar activePage="dashboard" />
 
-      <div className="flex-1 p-4 overflow-y-auto h-full">
-        <div className="mb-4">
+      <div className="flex-1 p-6 overflow-y-auto h-full">
+        {/* Top Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-4xl font-bold text-purple-600 mb-2">Hello, {user?.name || 'User'}!</h1>
-            <p className="text-gray-600">{isStudent ? 'Stay updated with notices, events, and your bookings.' : 'Welcome to your venue management dashboard.'}</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-purple-700 mb-1">
+              Hello, {user?.name || 'User'}!
+            </h1>
+            <p className="text-gray-600 text-sm md:text-base">
+              {isStudent
+                ? 'Stay updated with live notices, today events, and campus venues.'
+                : 'Welcome to your real-time venue and booking management dashboard.'}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => fetchDashboardData(true)}
+              disabled={refreshing || loading}
+              className="flex items-center gap-2 bg-white text-purple-700 px-4 py-2 rounded-xl shadow-sm border border-purple-100 hover:bg-purple-50 transition text-sm font-medium disabled:opacity-50"
+              title="Refresh dashboard data"
+            >
+              <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+              <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+            </button>
+
+            {!isStudent && (
+              <button
+                onClick={() => navigate('/book-venue')}
+                className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-xl shadow-md hover:bg-purple-700 transition text-sm font-medium"
+              >
+                <Calendar size={16} />
+                <span>Book Venue</span>
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Stats Cards - shown only for non-student roles */}
-        {!isStudent && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        {/* Error Alert */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={20} className="text-red-500 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+            <button
+              onClick={() => fetchDashboardData()}
+              className="text-xs bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1.5 rounded-lg font-medium transition"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-2xl p-6 shadow-sm animate-pulse h-32 flex items-center justify-between">
+                <div className="space-y-3 flex-1">
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+                </div>
+                <div className="w-12 h-12 bg-gray-200 rounded-xl"></div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Stats Cards - shown for staff and admin */}
+        {!loading && !isStudent && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {stats.map((stat, index) => (
-              <div key={index} className={`${stat.color} rounded-2xl p-4 text-white shadow-lg`}>
-                <div className="flex justify-between items-start mb-4">
+              <div
+                key={index}
+                className={`${stat.color} rounded-2xl p-5 text-white shadow-lg transition-transform hover:-translate-y-0.5 duration-200`}
+              >
+                <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-white/90 font-medium mb-2">{stat.title}</p>
-                    <p className="text-4xl font-bold">{stat.value}</p>
+                    <p className="text-white/90 text-sm font-medium mb-1">{stat.title}</p>
+                    <p className="text-4xl font-extrabold tracking-tight">{stat.value}</p>
+                    <p className="text-white/75 text-xs mt-2">{stat.desc}</p>
                   </div>
-                  <div className="bg-white/20 p-3 rounded-lg">
-                    <stat.icon size={32} />
+                  <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <stat.icon size={28} />
                   </div>
                 </div>
               </div>
@@ -72,130 +260,279 @@ const Dashboard = () => {
           </div>
         )}
 
+        {/* Student View */}
         {isStudent ? (
           <>
-            <div className="bg-white rounded-2xl p-4 shadow-lg mb-4">
+            {/* Quick overview cards for student */}
+            {!loading && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-5 text-white shadow-lg flex items-center justify-between">
+                  <div>
+                    <p className="text-white/90 text-sm font-medium mb-1">Today's Campus Events</p>
+                    <p className="text-3xl font-bold">{dashboardData.todayEvents?.length ?? 0}</p>
+                    <p className="text-white/75 text-xs mt-1">Happening in campus halls and labs</p>
+                  </div>
+                  <div className="bg-white/20 p-3 rounded-xl">
+                    <Calendar size={28} />
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-teal-500 to-emerald-600 rounded-2xl p-5 text-white shadow-lg flex items-center justify-between">
+                  <div>
+                    <p className="text-white/90 text-sm font-medium mb-1">Available Campus Venues</p>
+                    <p className="text-3xl font-bold">{dashboardData.stats?.availableVenues ?? 0}</p>
+                    <p className="text-white/75 text-xs mt-1">Ready for bookings & classes</p>
+                  </div>
+                  <div className="bg-white/20 p-3 rounded-xl">
+                    <Building2 size={28} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Important Notices */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-purple-50 mb-6">
               <div className="flex items-center gap-2 mb-4">
-                <Bell className="text-purple-600" size={24} />
-                <h2 className="text-xl font-bold text-purple-600">Important Notices</h2>
+                <Bell className="text-purple-600" size={22} />
+                <h2 className="text-lg font-bold text-gray-800">Important Notices</h2>
               </div>
               <div className="space-y-3">
                 {notices.map((notice) => (
-                  <div key={notice.id} className={`p-3 rounded-lg border-l-4 ${notice.priority === 'high' ? 'bg-red-50 border-red-500' : notice.priority === 'medium' ? 'bg-yellow-50 border-yellow-500' : 'bg-blue-50 border-blue-500'}`}>
+                  <div
+                    key={notice.id}
+                    className={`p-3.5 rounded-xl border-l-4 transition hover:shadow-sm ${
+                      notice.priority === 'high'
+                        ? 'bg-red-50/70 border-red-500'
+                        : notice.priority === 'medium'
+                        ? 'bg-amber-50/70 border-amber-500'
+                        : 'bg-blue-50/70 border-blue-500'
+                    }`}
+                  >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800 mb-1">{notice.title}</h3>
-                        <p className="text-sm text-gray-600">{notice.message}</p>
+                        <h3 className="font-semibold text-gray-900 text-sm mb-1">{notice.title}</h3>
+                        <p className="text-xs text-gray-600 leading-relaxed">{notice.message}</p>
                       </div>
-                      <span className="text-xs text-gray-500 ml-2">{notice.time}</span>
+                      <span className="text-[11px] text-gray-500 ml-3 whitespace-nowrap bg-white/80 px-2 py-0.5 rounded-full border border-gray-100">
+                        {notice.time}
+                      </span>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-2">
-              <div className="bg-white rounded-2xl p-4 shadow-lg">
-                <div className="flex items-center gap-2 mb-4">
-                  <Calendar className="text-purple-600" size={24} />
-                  <h2 className="text-xl font-bold text-purple-600">Events Today</h2>
+            {/* Events Today */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-purple-50 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="text-purple-600" size={22} />
+                  <h2 className="text-lg font-bold text-gray-800">Events Today</h2>
                 </div>
-
-                <div className="space-y-3">
-                  {todayEvents.map((event) => (
-                    <div key={event.id} className="p-3 bg-purple-50 rounded-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold text-purple-700 flex-1">{event.title}</h3>
-                        <span className={`text-xs px-2 py-1 rounded-full ${event.status === 'Ongoing' ? 'bg-green-200 text-green-700' : 'bg-blue-200 text-blue-700'}`}>{event.status}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                        <MapPin size={16} />
-                        <span className="font-medium">{event.venue}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                        <Clock size={16} />
-                        <span>{event.time}</span>
-                      </div>
-                      <p className="text-xs text-gray-500">By {event.organizer}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <button className="w-full mt-3 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition">View All Events</button>
+                <span className="text-xs text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full font-medium">
+                  {dashboardData.todayEvents?.length ?? 0} Events
+                </span>
               </div>
-            
+
+              {dashboardData.todayEvents && dashboardData.todayEvents.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {dashboardData.todayEvents.map((event) => {
+                    const statusObj = getEventStatus(event.startTime, event.endTime);
+                    return (
+                      <div key={event._id} className="p-4 bg-purple-50/60 rounded-xl border border-purple-100 flex flex-col justify-between">
+                        <div>
+                          <div className="flex justify-between items-start gap-2 mb-2">
+                            <h3 className="font-semibold text-purple-900 text-sm leading-tight flex-1">
+                              {event.title}
+                            </h3>
+                            <span className={`text-[11px] px-2 py-0.5 rounded-full ${statusObj.style}`}>
+                              {statusObj.label}
+                            </span>
+                          </div>
+                          <div className="space-y-1 text-xs text-gray-600 mb-3">
+                            <div className="flex items-center gap-1.5">
+                              <MapPin size={14} className="text-purple-500 flex-shrink-0" />
+                              <span className="font-medium text-gray-800">{event.venue?.name || 'Venue'}</span>
+                              {event.venue?.location?.building && (
+                                <span className="text-gray-500">({event.venue.location.building})</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Clock size={14} className="text-purple-500 flex-shrink-0" />
+                              <span>{formatTimeRange(event.startTime, event.endTime)}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-gray-500 pt-2 border-t border-purple-100">
+                          By {event.user?.name || 'Department'} {event.user?.department ? `• ${event.user.department}` : ''}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-gray-50 rounded-xl">
+                  <Calendar className="mx-auto text-gray-400 mb-2" size={32} />
+                  <p className="text-gray-500 text-sm">No events or classes scheduled for today.</p>
+                </div>
+              )}
+
+              <button
+                onClick={() => navigate('/venues')}
+                className="w-full mt-4 bg-purple-600 text-white py-2.5 rounded-xl hover:bg-purple-700 transition text-sm font-medium shadow-sm"
+              >
+                Browse Campus Venues
+              </button>
             </div>
           </>
         ) : (
-          <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-2">
-              <div className="bg-white rounded-2xl p-4 shadow-lg">
-                <h2 className="text-xl font-bold text-purple-600 mb-4">Upcoming Schedule</h2>
-                <p className="text-gray-500 text-sm mb-4">April 2024</p>
-
-                <div className="space-y-3">
-                  {upcomingSchedule.map((item) => (
-                    <div key={item.id} className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
-                      <div className="w-10 h-10 bg-purple-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Calendar className="text-purple-600" size={20} />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-purple-700">{item.title}</h3>
-                        <p className="text-sm text-gray-600">{item.type}</p>
-                        <p className="text-xs text-gray-500">{item.location}</p>
-                      </div>
-                      <div className="text-right">
-                        {item.status && <p className="text-xs text-orange-500 mb-1">{item.status}</p>}
-                        <p className="text-xs text-gray-600">{item.time}</p>
-                        <p className={`text-xs font-semibold ${item.statusColor}`}>0.0 PPM</p>
-                      </div>
-                    </div>
-                  ))}
+          /* Staff & Admin View */
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Upcoming Schedule */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-purple-50 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-800">Upcoming Schedule</h2>
+                    <p className="text-gray-400 text-xs">{currentMonthYear}</p>
+                  </div>
+                  <span className="text-xs text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full font-medium">
+                    {dashboardData.upcomingSchedule?.length ?? 0} Upcoming
+                  </span>
                 </div>
 
-                <button className="w-full mt-3 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition">View Schedule</button>
+                <div className="space-y-3">
+                  {dashboardData.upcomingSchedule && dashboardData.upcomingSchedule.length > 0 ? (
+                    dashboardData.upcomingSchedule.map((item) => {
+                      const badge = getStatusBadge(item.status);
+                      return (
+                        <div key={item._id} className="flex items-start gap-3 p-3.5 bg-purple-50/60 hover:bg-purple-50 rounded-xl border border-purple-100 transition">
+                          <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0 text-purple-600">
+                            <Calendar size={20} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-purple-950 text-sm truncate">{item.title}</h3>
+                            <p className="text-xs text-gray-600 truncate">
+                              {item.venue?.name || 'Venue'} {item.venue?.type ? `• ${item.venue.type}` : ''}
+                            </p>
+                            <p className="text-[11px] text-gray-400 truncate">
+                              {item.venue?.location?.building ? `${item.venue.location.building}` : ''}
+                              {item.venue?.location?.floor ? `, ${item.venue.location.floor}` : ''}
+                            </p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full font-medium mb-1 ${badge.style}`}>
+                              {badge.text}
+                            </span>
+                            <p className="text-[11px] text-gray-600 font-medium">
+                              {formatDate(item.startTime)}
+                            </p>
+                            <p className="text-[10px] text-gray-500">
+                              {formatTimeRange(item.startTime, item.endTime)}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-10 bg-gray-50 rounded-xl">
+                      <Calendar className="mx-auto text-gray-400 mb-2" size={32} />
+                      <p className="text-gray-500 text-sm">No upcoming bookings found.</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="bg-white rounded-2xl p-4 shadow-lg">
+              <button
+                onClick={() => navigate(isAdmin ? '/manage-bookings' : '/my-bookings')}
+                className="w-full mt-4 bg-purple-600 text-white py-2.5 rounded-xl hover:bg-purple-700 transition text-sm font-medium shadow-sm"
+              >
+                View Full Schedule
+              </button>
+            </div>
+
+            {/* Recent Bookings */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-purple-50 flex flex-col justify-between">
+              <div>
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-bold text-purple-600">Recent Bookings</h2>
-                  <a href="#" className="text-purple-600 text-sm hover:underline">View All »</a>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-800">Recent Bookings</h2>
+                    <p className="text-gray-400 text-xs">Latest booking requests</p>
+                  </div>
+                  <button
+                    onClick={() => navigate(isAdmin ? '/manage-bookings' : '/my-bookings')}
+                    className="text-purple-600 text-xs font-semibold hover:underline flex items-center gap-1"
+                  >
+                    <span>View All</span>
+                    <ChevronRight size={14} />
+                  </button>
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full text-left">
                     <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-3 text-sm text-gray-500 font-medium">Venue</th>
-                        <th className="text-left py-3 text-sm text-gray-500 font-medium">Date</th>
-                        <th className="text-left py-3 text-sm text-gray-500 font-medium">Status</th>
+                      <tr className="border-b border-gray-100 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                        <th className="py-2.5 px-2">Venue / Title</th>
+                        <th className="py-2.5 px-2">Date & Time</th>
+                        <th className="py-2.5 px-2 text-right">Status</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {recentBookings.map((booking, index) => (
-                        <tr key={index} className="border-b last:border-0">
-                          <td className="py-3 text-gray-800">{booking.venue}</td>
-                          <td className="py-3 text-gray-600">{booking.date}</td>
-                          <td className={`py-3 font-medium ${booking.statusColor}`}>{booking.status}</td>
+                    <tbody className="divide-y divide-gray-50 text-xs">
+                      {dashboardData.recentBookings && dashboardData.recentBookings.length > 0 ? (
+                        dashboardData.recentBookings.map((booking) => {
+                          const badge = getStatusBadge(booking.status);
+                          return (
+                            <tr key={booking._id} className="hover:bg-purple-50/40 transition">
+                              <td className="py-3 px-2">
+                                <p className="font-semibold text-gray-900 truncate max-w-[150px]">
+                                  {booking.venue?.name || 'Venue'}
+                                </p>
+                                <p className="text-[11px] text-gray-500 truncate max-w-[150px]">
+                                  {booking.title}
+                                </p>
+                              </td>
+                              <td className="py-3 px-2 text-gray-600">
+                                <p className="font-medium text-gray-800">{formatDate(booking.startTime || booking.date)}</p>
+                                <p className="text-[11px] text-gray-500">{formatTimeRange(booking.startTime, booking.endTime)}</p>
+                              </td>
+                              <td className="py-3 px-2 text-right">
+                                <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full font-medium ${badge.style}`}>
+                                  {badge.text}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan="3" className="py-8 text-center text-gray-400 text-sm">
+                            No recent bookings found.
+                          </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
+              </div>
 
-                <div className="grid grid-cols-2 gap-3 mt-4">
-                  <button className="bg-purple-500 text-white py-2 px-3 rounded-lg hover:bg-purple-600 transition flex items-center justify-center gap-2">
-                    <Calendar size={20} />
-                    <span>Book a Venue</span>
-                  </button>
-                  <button className="bg-purple-600 text-white py-2 px-3 rounded-lg hover:bg-purple-700 transition flex items-center justify-center gap-2">
-                    <Building2 size={20} />
-                    <span>Manage Venues</span>
-                  </button>
-                </div>
+              <div className="grid grid-cols-2 gap-3 mt-4 pt-2">
+                <button
+                  onClick={() => navigate('/book-venue')}
+                  className="bg-purple-500 hover:bg-purple-600 text-white py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 text-xs md:text-sm font-medium shadow-sm"
+                >
+                  <Calendar size={16} />
+                  <span>Book a Venue</span>
+                </button>
+                <button
+                  onClick={() => navigate(isAdmin ? '/manage-venues' : '/venues')}
+                  className="bg-purple-700 hover:bg-purple-800 text-white py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 text-xs md:text-sm font-medium shadow-sm"
+                >
+                  <Building2 size={16} />
+                  <span>{isAdmin ? 'Manage Venues' : 'View Venues'}</span>
+                </button>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
