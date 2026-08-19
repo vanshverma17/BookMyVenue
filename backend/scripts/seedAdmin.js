@@ -9,7 +9,7 @@ const run = async () => {
   const dbName = process.env.MONGODB_DBNAME || 'bookmyvenue';
 
   const email = process.env.ADMIN_EMAIL || 'admin@bookmyvenue.com';
-  const password = process.env.ADMIN_PASSWORD || 'Admin@12345678';
+  const password = process.env.ADMIN_PASSWORD || 'admin12345678';
   const name = process.env.ADMIN_NAME || 'Admin';
   const reset = process.argv.includes('--reset');
 

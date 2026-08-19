@@ -18,7 +18,7 @@ const seedUsers = async () => {
       {
         name: 'Admin User',
         email: 'admin@bookmyvenue.com',
-        password: 'admin123',
+        password: 'admin12345678',
         role: 'admin',
         department: 'Administration',
         phoneNumber: '1234567890'
@@ -49,18 +49,25 @@ const seedUsers = async () => {
       }
     ];
 
-    // Create users one by one (to avoid duplicate key errors)
+    // Create or update users one by one
     for (const userData of users) {
       try {
-        const existingUser = await User.findOne({ email: userData.email });
+        const existingUser = await User.findOne({ email: userData.email.toLowerCase().trim() });
         if (existingUser) {
-          console.log(`User with email ${userData.email} already exists, skipping...`);
+          existingUser.name = userData.name;
+          existingUser.role = userData.role;
+          existingUser.department = userData.department;
+          existingUser.phoneNumber = userData.phoneNumber;
+          existingUser.isActive = true;
+          existingUser.password = userData.password; // will be hashed by pre('save') hook
+          await existingUser.save();
+          console.log(`✓ Updated user: ${userData.name} (${userData.role}) - ${userData.email}`);
         } else {
           await User.create(userData);
           console.log(`✓ Created user: ${userData.name} (${userData.role}) - ${userData.email}`);
         }
       } catch (err) {
-        console.log(`✗ Error creating user ${userData.email}:`, err.message);
+        console.log(`✗ Error with user ${userData.email}:`, err.message);
       }
     }
 
