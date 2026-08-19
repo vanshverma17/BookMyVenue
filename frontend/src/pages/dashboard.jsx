@@ -300,13 +300,12 @@ const Dashboard = () => {
                 {notices.map((notice) => (
                   <div
                     key={notice.id}
-                    className={`p-3.5 rounded-xl border-l-4 transition hover:shadow-sm ${
-                      notice.priority === 'high'
+                    className={`p-3.5 rounded-xl border-l-4 transition hover:shadow-sm ${notice.priority === 'high'
                         ? 'bg-red-50/70 border-red-500'
                         : notice.priority === 'medium'
-                        ? 'bg-amber-50/70 border-amber-500'
-                        : 'bg-blue-50/70 border-blue-500'
-                    }`}
+                          ? 'bg-amber-50/70 border-amber-500'
+                          : 'bg-blue-50/70 border-blue-500'
+                      }`}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
