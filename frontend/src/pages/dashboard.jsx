@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Building2, Clock, Bell, MapPin, AlertCircle, RefreshCw, User, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Calendar, Building2, Clock, Bell, MapPin, AlertCircle, RefreshCw, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { useAuth } from '../context/AuthContext';

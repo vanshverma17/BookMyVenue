@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Check, X, Clock, Calendar, MapPin, User, Filter } from 'lucide-react';
+import { Search, Check, X, Clock, Calendar, User } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import { bookingsApi } from '../lib/api';
 

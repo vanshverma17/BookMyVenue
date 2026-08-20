@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Plus, ChevronDown } from 'lucide-react';
+import { Search } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import VenueCard from '../components/VenueCard';
 import { venuesApi } from '../lib/api';

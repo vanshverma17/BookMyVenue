@@ -99,7 +99,7 @@ const ManageVenue = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentVenues = filteredVenues.slice(startIndex, endIndex);
 
-  const handleEdit = (id) => {
+  const handleEdit = () => {
     alert('Edit functionality coming soon');
   };
 
