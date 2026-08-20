@@ -100,8 +100,7 @@ const ManageVenue = () => {
   const currentVenues = filteredVenues.slice(startIndex, endIndex);
 
   const handleEdit = (id) => {
-    console.log('Edit venue:', id);
-    // TODO: Implement edit functionality
+    alert('Edit functionality coming soon');
   };
 
   const handleDelete = async (id) => {
