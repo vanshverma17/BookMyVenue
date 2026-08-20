@@ -189,36 +189,36 @@ const ManageVenue = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex flex-col md:flex-row h-screen bg-gray-50 overflow-hidden">
       <Sidebar activePage="manage-venues" />
       
-      <div className="flex-1 overflow-auto">
-        <div className="p-8">
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
           {/* Header Section */}
           <div className="mb-2">
             <div>
-              <h1 className="text-4xl font-bold text-purple-700 mb-2">Manage Venues</h1>
-              <p className="text-gray-600">Add, edit, or remove venues from your campus venue management system.</p>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-purple-700 mb-1 sm:mb-2">Manage Venues</h1>
+              <p className="text-gray-600 text-xs sm:text-sm">Add, edit, or remove venues from your campus venue management system.</p>
             </div>
           </div>
 
           {/* Search and Add Button */}
-          <div className="flex items-center gap-4 my-8">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 my-4 sm:my-8">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-3.5 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
-                placeholder="Search venues..."
+                placeholder="Search venues by name, type, or location..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 text-xs sm:text-sm md:text-base rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
               />
             </div>
             <button 
               onClick={handleAddVenue}
-              className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg transition duration-200 font-medium shadow-md"
+              className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 active:scale-98 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl transition duration-200 font-medium shadow-md text-xs sm:text-sm whitespace-nowrap"
             >
-              <Plus size={20} />
+              <Plus size={18} />
               <span>Add Venue</span>
             </button>
           </div>
@@ -226,13 +226,62 @@ const ManageVenue = () => {
           {/* Loading State */}
           {loading && venues.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500">Loading venues...</p>
+              <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+              <p className="text-gray-500 text-sm">Loading venues...</p>
             </div>
           )}
 
-          {/* Venues Table */}
-          {!loading || venues.length > 0 ? (
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          {/* Mobile View: Dedicated Venue Cards (visible on mobile only) */}
+          <div className="block md:hidden space-y-3">
+            {currentVenues.map((venue) => (
+              <div 
+                key={venue._id}
+                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+                      {getIcon(venue.type)}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-gray-900 text-sm truncate">{venue.name}</h3>
+                      <p className="text-xs text-purple-600 font-medium">{formatType(venue.type)}</p>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-100 rounded-full text-xs font-semibold flex-shrink-0">
+                    Cap: {venue.capacity}
+                  </span>
+                </div>
+
+                <div className="pt-2 border-t border-gray-50 flex items-center justify-between text-xs text-gray-600">
+                  <span className="truncate max-w-[180px]">📍 {formatLocation(venue.location)}</span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => handleEdit(venue._id)}
+                      className="p-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition active:scale-95 text-xs font-medium flex items-center gap-1"
+                      title="Edit venue"
+                    >
+                      <Edit size={14} />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(venue._id)}
+                      disabled={loading}
+                      className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition active:scale-95 text-xs font-medium flex items-center gap-1 disabled:opacity-50"
+                      title="Delete venue"
+                    >
+                      <Trash2 size={14} />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop View: Full 12-Column Table (visible on desktop only) */}
+          {(!loading || venues.length > 0) ? (
+            <div className="hidden md:block bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
               {/* Table Header */}
               <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-600 uppercase tracking-wider">
                 <div className="col-span-4">Venue</div>
@@ -296,26 +345,26 @@ const ManageVenue = () => {
 
           {/* Pagination */}
           {filteredVenues.length > 0 && (
-            <div className="flex items-center justify-between mt-6">
-              <div className="text-gray-600">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6">
+              <div className="text-gray-600 text-xs sm:text-sm">
                 Showing {startIndex + 1} to {Math.min(endIndex, filteredVenues.length)} of {filteredVenues.length} Venues
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full pb-1">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                   className="p-2 rounded-lg hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
                 >
-                  <ChevronLeft size={20} className="text-gray-600" />
+                  <ChevronLeft size={18} className="text-gray-600" />
                 </button>
                 {[...Array(totalPages)].map((_, index) => (
                   <button
                     key={index + 1}
                     onClick={() => setCurrentPage(index + 1)}
-                    className={`w-10 h-10 rounded-lg font-medium transition duration-200 ${
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-xs sm:text-sm font-medium transition duration-200 flex-shrink-0 ${
                       currentPage === index + 1
-                        ? 'bg-purple-500 text-white'
-                        : 'bg-white text-gray-600 hover:bg-purple-100'
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'bg-white text-gray-600 hover:bg-purple-100 border border-gray-100'
                     }`}
                   >
                     {index + 1}
@@ -326,7 +375,7 @@ const ManageVenue = () => {
                   disabled={currentPage === totalPages}
                   className="p-2 rounded-lg hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
                 >
-                  <ChevronRight size={20} className="text-gray-600" />
+                  <ChevronRight size={18} className="text-gray-600" />
                 </button>
               </div>
             </div>
@@ -334,8 +383,8 @@ const ManageVenue = () => {
 
           {/* No results message */}
           {filteredVenues.length === 0 && !loading && (
-            <div className="text-center py-12 bg-white rounded-xl shadow-sm mt-8">
-              <p className="text-gray-500 text-lg">No venues found matching your criteria.</p>
+            <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100 mt-6">
+              <p className="text-gray-500 text-sm sm:text-base">No venues found matching your criteria.</p>
             </div>
           )}
         </div>
@@ -343,13 +392,13 @@ const ManageVenue = () => {
 
       {/* Add Venue Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-purple-700">Add New Venue</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-5 sm:p-8 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5 pb-3 border-b border-gray-100">
+              <h2 className="text-xl sm:text-2xl font-bold text-purple-700">Add New Venue</h2>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600 transition"
+                className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -358,15 +407,15 @@ const ManageVenue = () => {
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs sm:text-sm">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmitVenue} className="space-y-4">
+            <form onSubmit={handleSubmitVenue} className="space-y-3.5 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Venue Number/Name
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
+                  Venue Name / Number
                 </label>
                 <input
                   type="text"
@@ -375,12 +424,12 @@ const ManageVenue = () => {
                   onChange={handleInputChange}
                   placeholder="e.g., Room 305"
                   required
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
                   Type
                 </label>
                 <select
@@ -388,7 +437,7 @@ const ManageVenue = () => {
                   value={formData.type}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
                   <option value="">Select type</option>
                   <option value="classroom">Classroom</option>
@@ -402,7 +451,7 @@ const ManageVenue = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
                   Capacity
                 </label>
                 <input
@@ -413,42 +462,44 @@ const ManageVenue = () => {
                   placeholder="e.g., 30"
                   min="1"
                   required
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Building
-                </label>
-                <input
-                  type="text"
-                  name="location.building"
-                  value={formData.location.building}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Building A"
-                  required
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
+                    Building
+                  </label>
+                  <input
+                    type="text"
+                    name="location.building"
+                    value={formData.location.building}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Block A"
+                    required
+                    className="w-full px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
+                    Floor
+                  </label>
+                  <input
+                    type="text"
+                    name="location.floor"
+                    value={formData.location.floor}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 1st Floor"
+                    required
+                    className="w-full px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Floor
-                </label>
-                <input
-                  type="text"
-                  name="location.floor"
-                  value={formData.location.floor}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 1st Floor"
-                  required
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
                   Room Number (Optional)
                 </label>
                 <input
@@ -457,23 +508,23 @@ const ManageVenue = () => {
                   value={formData.location.roomNumber}
                   onChange={handleInputChange}
                   placeholder="e.g., 305"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-3 pt-3">
                 <button
                   type="button"
                   onClick={handleCloseModal}
                   disabled={loading}
-                  className="flex-1 px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition font-medium disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition font-medium disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 px-6 py-3 rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition font-medium shadow-md disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl bg-purple-600 hover:bg-purple-700 text-white transition font-medium shadow-md disabled:opacity-50 active:scale-98"
                 >
                   {loading ? 'Adding...' : 'Add Venue'}
                 </button>
@@ -487,3 +538,4 @@ const ManageVenue = () => {
 };
 
 export default ManageVenue;
+

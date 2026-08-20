@@ -97,23 +97,25 @@ const VenueCard = ({ name, capacity, status, type }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.12)] border border-gray-100 p-5 hover:shadow-[0_8px_30px_rgba(139,92,246,0.3)] hover:border-purple-200 transition-all duration-300">
-      <h3 className="text-xl font-semibold text-purple-700 mb-3">{name}</h3>
-      
-      {getVenueIllustration()}
-      
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-gray-600">
-          <Users size={18} />
-          <span className="text-sm">Capacity: {capacity}</span>
-        </div>
-        <div className={`flex items-center gap-2 ${statusColor} font-medium text-sm`}>
-          <div className={`w-2 h-2 rounded-full ${statusDot}`}></div>
-          <span>{status}</span>
+    <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.12)] border border-gray-100 p-4 sm:p-5 hover:shadow-[0_8px_30px_rgba(139,92,246,0.3)] hover:border-purple-200 transition-all duration-300 flex flex-col justify-between">
+      <div>
+        <h3 className="text-lg sm:text-xl font-semibold text-purple-700 mb-2 sm:mb-3 truncate" title={name}>{name}</h3>
+        
+        {getVenueIllustration()}
+        
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-600">
+            <Users size={16} className="text-purple-500 flex-shrink-0" />
+            <span className="text-xs sm:text-sm font-medium">Capacity: {capacity}</span>
+          </div>
+          <div className={`flex items-center gap-1.5 ${statusColor} font-medium text-xs sm:text-sm`}>
+            <div className={`w-2 h-2 rounded-full ${statusDot}`}></div>
+            <span>{status}</span>
+          </div>
         </div>
       </div>
       
-      <button className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg transition duration-200 font-medium">
+      <button className="w-full bg-purple-500 hover:bg-purple-600 active:bg-purple-700 text-white py-2.5 px-4 rounded-xl transition duration-200 font-medium text-sm sm:text-base active:scale-98">
         View Details
       </button>
     </div>

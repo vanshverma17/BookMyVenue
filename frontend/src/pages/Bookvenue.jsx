@@ -94,40 +94,40 @@ const Bookvenue = () => {
   };
 
   return (
-    <div className="flex h-screen w-full bg-gradient-to-br from-purple-50 to-blue-50 overflow-hidden">
+    <div className="flex flex-col md:flex-row h-screen w-full bg-gradient-to-br from-purple-50 to-blue-50 overflow-hidden">
       <Sidebar activePage="book-venue" />
 
-      <main className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-6xl mx-auto">
-          <header className="mb-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          <header className="mb-5 sm:mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-purple-600">Book a Venue</h1>
-              <p className="text-sm text-gray-600 mt-1">Fill out the form below to request a venue for your extra class or event.</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-purple-600">Book a Venue</h1>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">Fill out the form below to request a venue for your extra class or event.</p>
             </div>
           </header>
 
-          <section className="bg-white shadow-lg rounded-2xl p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <section className="bg-white shadow-lg rounded-2xl p-4 sm:p-6 md:p-8 border border-purple-50">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               {error ? (
-                <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+                <div className="text-xs sm:text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
                   {error}
                 </div>
               ) : null}
               {success ? (
-                <div className="text-sm text-green-700 bg-green-50 border border-green-100 rounded-lg px-4 py-3">
+                <div className="text-xs sm:text-sm text-green-700 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
                   {success}
                 </div>
               ) : null}
 
               {/* Select Venue */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Select Venue</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Select Venue</label>
                 <div className="flex items-center gap-2">
-                  <MapPin className="text-purple-500" />
+                  <MapPin className="text-purple-500 flex-shrink-0" size={20} />
                   <select
                     value={venue}
                     onChange={(e) => setVenue(e.target.value)}
-                    className="flex-1 py-3 px-4 border border-gray-200 rounded-lg bg-gray-50"
+                    className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 border border-gray-200 rounded-xl bg-gray-50 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition"
                     disabled={loadingVenues}
                   >
                     <option value="">Select Venue</option>
@@ -141,66 +141,66 @@ const Bookvenue = () => {
               </div>
 
               {/* Title & Attendees */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Booking Title</label>
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full py-3 px-4 border border-gray-200 rounded-lg bg-gray-50"
+                    className="w-full py-2.5 sm:py-3 px-3 sm:px-4 border border-gray-200 rounded-xl bg-gray-50 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition"
                     placeholder="e.g., Extra Class - DBMS"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Attendees</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Expected Attendees</label>
                   <input
                     type="number"
                     min={1}
                     value={attendees}
                     onChange={(e) => setAttendees(e.target.value)}
-                    className="w-full py-3 px-4 border border-gray-200 rounded-lg bg-gray-50"
+                    className="w-full py-2.5 sm:py-3 px-3 sm:px-4 border border-gray-200 rounded-xl bg-gray-50 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition"
                   />
                 </div>
               </div>
 
               {/* Date & Time */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Date</label>
                   <div className="flex items-center gap-2">
-                    <Calendar className="text-purple-500" />
+                    <Calendar className="text-purple-500 flex-shrink-0" size={18} />
                     <input
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="flex-1 py-3 px-3 border border-gray-200 rounded-lg bg-gray-50"
+                      className="flex-1 py-2.5 sm:py-3 px-3 border border-gray-200 rounded-xl bg-gray-50 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Start</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Start Time</label>
                   <div className="flex items-center gap-2">
-                    <Clock className="text-purple-500" />
+                    <Clock className="text-purple-500 flex-shrink-0" size={18} />
                     <input
                       type="time"
                       value={startTime}
                       onChange={(e) => setStartTime(e.target.value)}
-                      className="flex-1 py-3 px-3 border border-gray-200 rounded-lg bg-gray-50"
+                      className="flex-1 py-2.5 sm:py-3 px-3 border border-gray-200 rounded-xl bg-gray-50 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">End</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">End Time</label>
                   <div className="flex items-center gap-2">
-                    <Clock className="text-purple-500" />
+                    <Clock className="text-purple-500 flex-shrink-0" size={18} />
                     <input
                       type="time"
                       value={endTime}
                       onChange={(e) => setEndTime(e.target.value)}
-                      className="flex-1 py-3 px-3 border border-gray-200 rounded-lg bg-gray-50"
+                      className="flex-1 py-2.5 sm:py-3 px-3 border border-gray-200 rounded-xl bg-gray-50 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition"
                     />
                   </div>
                 </div>
@@ -208,13 +208,13 @@ const Bookvenue = () => {
 
               {/* Purpose */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Purpose</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Purpose</label>
                 <div className="flex items-center gap-2">
-                  <FileText className="text-purple-500" />
+                  <FileText className="text-purple-500 flex-shrink-0" size={20} />
                   <select
                     value={purpose}
                     onChange={(e) => setPurpose(e.target.value)}
-                    className="flex-1 py-3 px-4 border border-gray-200 rounded-lg bg-gray-50"
+                    className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 border border-gray-200 rounded-xl bg-gray-50 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition"
                   >
                     {purposeOptions.map((p) => (
                       <option key={p.value} value={p.value}>
@@ -227,12 +227,12 @@ const Bookvenue = () => {
 
               {/* Notes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Additional Notes <span className="text-xs text-gray-400">(optional)</span></label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Additional Notes <span className="text-xs text-gray-400">(optional)</span></label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  rows={4}
-                  className="w-full py-3 px-4 border border-gray-200 rounded-lg bg-gray-50"
+                  rows={3}
+                  className="w-full py-2.5 sm:py-3 px-3 sm:px-4 border border-gray-200 rounded-xl bg-gray-50 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition"
                   placeholder="Any special requirements or notes"
                 />
               </div>
@@ -241,10 +241,10 @@ const Bookvenue = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex items-center gap-2 bg-purple-600 text-white py-3 px-6 rounded-full hover:bg-purple-700 transition"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-purple-600 active:bg-purple-700 text-white py-3 px-8 rounded-xl font-medium shadow-md hover:bg-purple-700 transition active:scale-98 text-xs sm:text-sm"
                 >
                   <Send size={16} />
-                  {submitting ? 'Submitting…' : 'Submit Request'}
+                  <span>{submitting ? 'Submitting…' : 'Submit Request'}</span>
                 </button>
               </div>
             </form>
